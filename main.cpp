@@ -3,6 +3,7 @@
 #include "Validation.h"
 int main(){
 	std::vector<int> nums;
+	std::cout << "Give num for my vector \n";
 
 	nums.push_back(20);
 	nums.push_back(12);
@@ -12,7 +13,7 @@ int main(){
 
 	int sum{0};
     
-    std::cout << "Gimme num for my vector \n";
+    std::cout << "Give num for my vector \n";
 	user_vector = getValidInteger();
 
 	nums.push_back(user_vector);
@@ -29,20 +30,21 @@ int main(){
 		std::cout << "*new*: doubled: " << num << " \n";
 		sum += num;
 		}
-		std::cout << "the total of this new vector: " << sum << ": ";
+	std::cout << "the total of this new vector: " << sum << ": \n";
 	
-	std::cout << "GImme a number, I will find multiples and fiond vectors: " << std::endl; 
+	
 	int multiple{0};
+    std::cout << "Give me num for me to create a times table for: " << std::endl;
 
 	std::vector<int> multiples;
 	multiple = getValidInteger();
 
-	for (int i = 1; i < 11; i++){
+	for (int i = 1; i < 11; i++){     // im asuming this assignment was about manupilating vectors so I will try to do it like this.
 		multiples.push_back(multiple*i);
-		std::cout << multiples.at(i-1);
 	}
-
-	multiple = getValidInteger();
+	for (int num : multiples){
+		std::cout << num << " \n";
+		}
 	
 
 	return 0;
