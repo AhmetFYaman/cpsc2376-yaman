@@ -3,8 +3,6 @@
 #include "Validation.h"
 int main(){
 	std::vector<int> nums;
-	std::cout << "Give num for my vector \n";
-
 	nums.push_back(20);
 	nums.push_back(12);
 	nums.push_back(17);
@@ -13,7 +11,7 @@ int main(){
 
 	int sum{0};
     
-    std::cout << "Give num for my vector \n";
+    std::cout << "Give me a number, I will add it to my vector: ";
 	user_vector = getValidInteger();
 
 	nums.push_back(user_vector);
@@ -30,11 +28,11 @@ int main(){
 		std::cout << "*new*: doubled: " << num << " \n";
 		sum += num;
 		}
-	std::cout << "the total of this new vector: " << sum << ": \n";
+	std::cout << "the total of this new vector: " << sum << " \n";
 	
 	
 	int multiple{0};
-    std::cout << "Give me num for me to create a times table for: " << std::endl;
+    std::cout << "Give me num for me to create a times table for - using a vector: ";
 
 	std::vector<int> multiples;
 	multiple = getValidInteger();

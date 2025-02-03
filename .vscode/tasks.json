@@ -1,0 +1,40 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "C_Cpp_Runner: Build",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-Wall",
+                "-Wextra",
+                "-Wpedantic",
+                "-Wshadow",
+                "-Wformat=2",
+                "-Wcast-align",
+                "-Wconversion",
+                "-Wsign-conversion",
+                "-Wnull-dereference",
+                "-g3",
+                "-O0",
+                "-o",
+                "build/Debug/outDebug.exe",
+                "c:/Users/hello/Desktop/programming2/main.cpp"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "C_Cpp_Runner: Run",
+            "type": "shell",
+            "command": ".\\build\\Debug\\outDebug.exe",
+            "group": "test",
+            "problemMatcher": []
+        }
+    ]
+}
