@@ -32,7 +32,7 @@ int main(){
 	
 	
 	int multiple{0};
-    std::cout << "Give me num for me to create a times table for - using a vector: ";
+    std::cout << "Give me num for me to create a times table for it - using a vector: ";
 
 	std::vector<int> multiples;
 	multiple = getValidInteger();
