@@ -1,3 +1,7 @@
+// AI note: Organizing the code for easier understandment and input output logic for file management was assisted by AI
+// converting the regular string outputs to printCharByChar function calls were done by AI
+// the Validation.h file was improved by and perfected by AI 
+
 #include "Validation.h"
 #include <iostream>
 #include <fstream>
