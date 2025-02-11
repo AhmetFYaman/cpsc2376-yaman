@@ -115,7 +115,7 @@ int getValidInteger() {
         std::stringstream ss(input);
 
         // Attempt to extract an integer
-        if (ss >> value) {
+        if (ss >> value) {      // if (std::cin.fail() || std::cin.peek() != '\n')
             // Check for extra characters in the input
             if (ss.eof()) {
                 // Ensure the integer is positive and greater than 0

@@ -1,41 +1,58 @@
 #include <iostream>
-#include <fstream>
 #include <string>
+#include <limits>
+#include <sstream>
+#include <deque>
+#include <vector>
+#include <list>
+#include <unordered_map>
 
+template<typename T>
+T add(T a, T b) {
+    return a + b;
+}
+template<typename T>
+T getInput(std::string prompt){
 
-void writeToFile(const std::string& filename, const int& content) {
-    std::ofstream outFile(filename, std::ios::app);
-    if (outFile.is_open()) {
-        outFile << content;
-        // No explicit close here
-        outFile.close();
-    } else {
-        std::cerr << "Failed to open file for writing." << std::endl;
+    while (true) {
+        std::cout << prompt;
+        T output;
+        std::cin >> output;
+        if (std::cin.fail() || std::cin.peek() != '\n') {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Invalid input. Please try again.\n";
+        } else {
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return output;
+        }
     }
-}
- 
-int main() {
-    writeToFile("example.txt", 100);
-    writeToFile("example.txt", 200);
-    return 0;
+    std::cout << prompt;
+    T output;
+    std::cin >> output;
+    return output;
 }
 
-// void readWriteConflict(const std::string& filename) {
-//     std::ofstream outFile(filename);
-//     std::ifstream inFile(filename);
  
-//     if (outFile.is_open() && inFile.is_open()) {
-//         outFile << "Writing to file." << std::endl;
-//         std::string line;
-//         while (getline(inFile, line)) {
-//             std::cout << line << std::endl;
-//         }
-//     } else {
-//         std::cerr << "Failed to open file." << std::endl;
-//     }
-// }
- 
-// int main() {
-//     readWriteConflict("example.txt");
-//     return 0;
-// }
+int main() { 
+
+
+
+    // std::list<int> nums;
+    // nums.push_back(23);
+    // nums.push_front(99);
+    // std::cout << nums.at(0) << "/n";
+
+    // for (int num : nums){
+    //     std::cout << num << "/n";
+    // }
+    // std::cout << "\n";
+
+
+    std::unordered_map<int, int> squareLookup;
+    squareLookup[4] = 16;
+    squareLookup[3] = 9;
+    squareLookup[8] = 64;
+    std::cout << squareLookup.at(3) << "\n";
+    std::cout << squareLookup[8] << "\n"; 
+}
