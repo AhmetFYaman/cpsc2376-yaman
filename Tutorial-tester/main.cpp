@@ -1,58 +1,35 @@
 #include <iostream>
-#include <string>
-#include <limits>
-#include <sstream>
-#include <deque>
 #include <vector>
 #include <list>
-#include <unordered_map>
-
-template<typename T>
-T add(T a, T b) {
-    return a + b;
-}
-template<typename T>
-T getInput(std::string prompt){
-
-    while (true) {
-        std::cout << prompt;
-        T output;
-        std::cin >> output;
-        if (std::cin.fail() || std::cin.peek() != '\n') {
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cout << "Invalid input. Please try again.\n";
-        } else {
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            return output;
-        }
-    }
-    std::cout << prompt;
-    T output;
-    std::cin >> output;
-    return output;
-}
-
+#include <deque>
+#include <chrono>
  
-int main() { 
-
-
-
-    // std::list<int> nums;
-    // nums.push_back(23);
-    // nums.push_front(99);
-    // std::cout << nums.at(0) << "/n";
-
-    // for (int num : nums){
-    //     std::cout << num << "/n";
-    // }
-    // std::cout << "\n";
-
-
-    std::unordered_map<int, int> squareLookup;
-    squareLookup[4] = 16;
-    squareLookup[3] = 9;
-    squareLookup[8] = 64;
-    std::cout << squareLookup.at(3) << "\n";
-    std::cout << squareLookup[8] << "\n"; 
+ 
+int main() {
+    const int N = 100'000;
+    
+    std::vector<int> v;
+    std::list<int> l;
+    std::deque<int> d;
+ 
+ 
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < N; ++i) v.insert(v.begin(), i); //vector doesn't have push_front but this is functionally the same
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Vector: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms\n";
+ 
+ 
+    start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < N; ++i) l.push_front(i);
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << "List: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms\n";
+ 
+ 
+    start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < N; ++i) d.push_front(i);
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << "Deque: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms\n";
+ 
+ 
+    return 0;
 }
