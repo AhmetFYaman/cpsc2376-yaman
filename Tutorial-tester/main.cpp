@@ -1,14 +1,12 @@
 #include <iostream>
 #include <vector>
-#include <list>
-#include <deque>
-#include <chrono>
-#include "Val.h"
- 
+#include <algorithm>
  
 int main() {
-    printCharByChar("Give me double (1-9): ");
-    double x = getValidNumber<double>(1,9);
- 
+    std::vector<int> values = {5, 2, 8, 3, 1};
+    std::sort(values.begin(), values.end(), [](int a, int b) { return a%2 < b%2; });
+    for (int v : values) {
+        std::cout << v << " ";
+    }
     return 0;
 }
