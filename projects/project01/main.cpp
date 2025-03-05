@@ -233,21 +233,22 @@ void play(int rows, int cols, int mines, int& player1Total, int& player2Total) {
                  << (currentPlayer == Player::One ? currentPlayer1Score : currentPlayer2Score) << "):\n";
         printBoard(board, visibility);
 
-        int row, col;
-        bool validInput;
-        do {
-            validInput = true;
+        int row{-1};
+        int col{-1};
+        bool validInput{false};
+        while(!validInput){  // trying to make it more user sensable
+            validInput = true;  // had sacrifice an extra line to make it work this way
 
             std::cout << "Enter row (1-" << rows << "): ";
             row = getValidNumber<int>(1, rows) - 1;
             std::cout << "Enter column (1-" << cols << "): ";
             col = getValidNumber<int>(1, cols) - 1;
 
-            if (visibility[row][col]) {
+            if (visibility[row][col]) {   // if hte given row and col is already in visiibility board - revealed
                 std::cout << "This cell is already revealed! Choose another.\n";
                 validInput = false;
             }
-        } while (!validInput);
+        }
 
         if (board[row][col] == static_cast<int>(CellState::Mine)) {
             std::cout << "BOOM! Player " << static_cast<int>(currentPlayer) << " hit a mine! (-2 points)\n";
