@@ -1,12 +1,23 @@
 #include <iostream>
-#include <vector>
-#include <algorithm>
+ 
+class Animal {
+public:
+    virtual void speak() = 0;  // Pure virtual function
+    virtual ~Animal() = default;
+};
+ 
+class Cat : public Animal {
+public:
+    void speak() override { std::cout << "Meow"; }
+};
+ 
+std::ostream& operator<<(std::ostream& os, Animal& a) {
+    a.speak();
+    return os;
+}
  
 int main() {
-    std::vector<int> values = {5, 2, 8, 3, 1};
-    std::sort(values.begin(), values.end(), [](int a, int b) { return a%2 < b%2; });
-    for (int v : values) {
-        std::cout << v << " ";
-    }
-    return 0;
+    Cat c;
+    std::cout << c << std::endl;  // Prints "Meow"
 }
+ 
