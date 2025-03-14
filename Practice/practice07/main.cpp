@@ -1,10 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <memory>
-#include <sstream>
 #include <iomanip>
 #include <limits>
+// AI note: used AI to properly link the base and derived classes {set up the virtual and overrides properly} and write the classes properly, logic and guidance was done by me - yes thats a lot credit i got there
+// AI note: reorganization of code
+// Extra note:
+// the format provided in the assignment for the text file makes it really easy to read the file because 
+// I can determine how many more values I need to read based on the type of employee (I can get the name and ID while getting the type)
+// so a simple if else solves the problem of reading the file that AI struggled with at the start (could be because I was using an old version of AI)
 
 class Employee {
 protected:
