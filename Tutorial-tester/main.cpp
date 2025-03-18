@@ -1,23 +1,24 @@
 #include <iostream>
- 
-class Animal {
-public:
-    virtual void speak() = 0;  // Pure virtual function
-    virtual ~Animal() = default;
-};
- 
-class Cat : public Animal {
-public:
-    void speak() override { std::cout << "Meow"; }
-};
- 
-std::ostream& operator<<(std::ostream& os, Animal& a) {
-    a.speak();
-    return os;
-}
+#include <array>
  
 int main() {
-    Cat c;
-    std::cout << c << std::endl;  // Prints "Meow"
-}
+    std::array<int, 5> arr = {1, 2, 3, 4, 5};
+    
+    // Pointer to the first element of arr
+    int* p = arr.data();
+    std::cout << "Initial pointer p: " << p
+              << " | *p: " << *p << std::endl;
+    
+    // Move pointer to the next element
+    p++;
+    std::cout << "After p++: " << p
+              << " | *p: " << *p << std::endl;
+    
+    // Move pointer two more elements
+    p += 2;
+    std::cout << "After p += 2: " << p
+              << " | *p: " << *p << std::endl;
+    std::cout<< *p;
  
+    return 0;
+}
