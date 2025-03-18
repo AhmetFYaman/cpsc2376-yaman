@@ -1,5 +1,5 @@
-#include "game.h"
-#include "game.cpp"
+#include "minesweeper.h"
+#include "minesweeper.cpp"
 
 int main() {
     MinesweeperGame game;

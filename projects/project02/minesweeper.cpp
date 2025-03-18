@@ -1,4 +1,4 @@
-#include "game.h"
+#include "minesweeper.h"
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
