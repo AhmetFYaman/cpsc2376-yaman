@@ -422,15 +422,15 @@ void renderBoard(SDL_Renderer* renderer, TTF_Font* font, MinesweeperGame& game) 
                         // Choose color based on number value
                         SDL_Color numColor;
                         switch (value) {
-                        case 1: numColor = { 0, 0, 255, 255 }; break; // Blue
-                        case 2: numColor = { 0, 128, 0, 255 }; break; // Green
-                        case 3: numColor = { 255, 0, 0, 255 }; break; // Red
-                        case 4: numColor = { 128, 0, 128, 255 }; break; // Purple
-                        case 5: numColor = { 128, 0, 0, 255 }; break; // Maroon
-                        case 6: numColor = { 0, 128, 128, 255 }; break; // Teal
-                        case 7: numColor = { 0, 0, 0, 255 }; break; // Black
-                        case 8: numColor = { 128, 128, 128, 255 }; break; // Gray
-                        default: numColor = { 0, 0, 0, 255 }; break;
+                        case 1: numColor = { 0, 0, 255, 255 }; break; // Blue when its just 1 mine around it
+                        case 2: numColor = { 0, 128, 0, 255 }; break; // Grey when its 2 mine around
+                        case 3: numColor = { 255, 0, 0, 255 }; break; // Red for 3
+                        case 4: numColor = { 128, 0, 128, 255 }; break; // Purple for 4
+                        case 5: numColor = { 128, 0, 0, 255 }; break; // Maroon  for 5
+                        case 6: numColor = { 0, 128, 128, 255 }; break; // Teal for 6
+                        case 7: numColor = { 0, 0, 0, 255 }; break; // Black for 7
+                        case 8: numColor = { 128, 128, 128, 255 }; break; // Gray for 8
+                        default: numColor = { 0, 0, 0, 255 }; break; // 9 isnt possible, this is if no mine around it.
                         }
 
                         // Render the number
