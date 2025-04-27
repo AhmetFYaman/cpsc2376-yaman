@@ -11,8 +11,8 @@
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 650;
 const int CELL_SIZE = 40;
-const int BOARD_OFFSET_X = 150;  // Increased x offset
-const int BOARD_OFFSET_Y = 150;  // Increased y offset
+const int BOARD_OFFSET_X = 220;  // Increased x offset
+const int BOARD_OFFSET_Y = 100;  // Increased y offset
 const int BUTTON_WIDTH = 150;
 const int BUTTON_HEIGHT = 40;
 
@@ -21,9 +21,16 @@ enum class GuiState {
     MainMenu,
     SizeSelection,
     DifficultySelection,
-    InGame
+    CustomInput,
+    InGame,
+    GameEnd  // New state for game end screen
 };
 
+enum class CustomInputType {
+    Rows,
+    Columns,
+    Mines
+};
 // Structure for buttons
 struct Button {
     SDL_Rect rect;
@@ -31,11 +38,28 @@ struct Button {
     bool isHovered;
 };
 
+struct ButtonConfig {    // for custom button lining
+    int maxButtonCount;  // Maximum number of buttons to display
+    int minValue;        // Minimum value
+    int maxValue;        // Maximum value
+    int increment;       // Increment between button values
+};
+
+struct NumericInput {
+    std::string label;
+    int currentValue;
+    int minValue;
+    int maxValue;
+    std::vector<Button> buttons;
+    CustomInputType inputType;
+};
+
 // Function prototypes
 void renderBoard(SDL_Renderer* renderer, TTF_Font* font, MinesweeperGame& game);
 void renderUI(SDL_Renderer* renderer, TTF_Font* font, MinesweeperGame& game, GuiState state);
 void renderButton(SDL_Renderer* renderer, TTF_Font* font, Button& button);
-void handleMouseClick(int x, int y, MinesweeperGame& game);
+void handleMouseLeftClick(int x, int y, MinesweeperGame& game);
+void handleMouseRightClick(int x, int y, MinesweeperGame& game);
 Button createButton(int x, int y, const std::string& text);
 bool isPointInRect(int x, int y, const SDL_Rect& rect);
 void renderText(SDL_Renderer* renderer, TTF_Font* font, const std::string& text, int x, int y, SDL_Color color);
@@ -43,6 +67,109 @@ void renderSizeSelection(SDL_Renderer* renderer, TTF_Font* font, std::vector<But
 void renderDifficultySelection(SDL_Renderer* renderer, TTF_Font* font, std::vector<Button>& difficultyButtons);
 void handleCustomSizeInput(int& customRows, int& customCols);
 int handleCustomMinesInput(Size sizeChoice, int customRows, int customCols);
+void renderGameEnd(SDL_Renderer* renderer, TTF_Font* font, MinesweeperGame& game, Button& backToMenuButton, Button& playAgainButton);
+void renderNumericInput(SDL_Renderer* renderer, TTF_Font* font, NumericInput& input, Button& continueButton);
+
+bool handleNumericInputClick(int mouseX, int mouseY, NumericInput& input, Button& continueButton,
+    CustomInputType& currentInput, int& customRows, int& customCols, int& customMines,
+    GuiState& guiState, Size selectedSize = Size::Small) {
+
+    // Check if any number button was clicked
+    for (auto& button : input.buttons) {
+        if (isPointInRect(mouseX, mouseY, button.rect)) {
+            input.currentValue = std::stoi(button.text);
+            return true;
+        }
+    }
+
+    // Check if continue button was clicked
+    if (isPointInRect(mouseX, mouseY, continueButton.rect)) {
+        // Save the current value and move to next input
+        if (currentInput == CustomInputType::Rows) {
+            customRows = input.currentValue;
+            currentInput = CustomInputType::Columns;
+            return true;
+        }
+        else if (currentInput == CustomInputType::Columns) {
+            customCols = input.currentValue;
+            // If we're setting custom size, go to difficulty selection
+            guiState = GuiState::DifficultySelection;
+            return true;
+        }
+        else if (currentInput == CustomInputType::Mines) {
+            customMines = input.currentValue;
+            // If we're setting custom mines, start the game
+            guiState = GuiState::InGame;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+ButtonConfig calculateButtonConfig(int minValue, int maxValue, int maxButtonCount = 13) {
+    ButtonConfig config;
+    config.minValue = minValue;
+    config.maxValue = maxValue;
+    config.maxButtonCount = maxButtonCount;
+
+    // If range fits within button count, use regular increments of 1
+    if ((maxValue - minValue + 1) <= maxButtonCount) {
+        config.increment = 1;
+    }
+    else {
+        // Calculate required increment to fit range into maxButtonCount buttons
+        config.increment = (maxValue - minValue + 1 + maxButtonCount - 2) / (maxButtonCount - 1);
+        // Ensure the increment is at least 1
+        config.increment = std::max(1, config.increment);
+    }
+
+    return config;
+}
+
+NumericInput createNumericInput(const std::string& label, int minValue, int maxValue, int defaultValue = 5, CustomInputType inputType = CustomInputType::Rows) {
+    NumericInput input;
+    input.label = label;
+    input.currentValue = defaultValue;
+    input.minValue = minValue;
+    input.maxValue = maxValue;
+    input.inputType = inputType;
+
+    // Get button configuration
+    ButtonConfig config = calculateButtonConfig(minValue, maxValue);
+    int increment = config.increment;
+
+    // Create buttons for each value with appropriate increments
+    int buttonWidth = 40;
+    int buttonHeight = 40;
+    std::vector<int> buttonValues;
+
+    // Generate button values
+    for (int val = minValue; val < maxValue; val += increment) {
+        buttonValues.push_back(val);
+    }
+    // Always include the max value as the last button
+    if (buttonValues.empty() || buttonValues.back() != maxValue) {
+        buttonValues.push_back(maxValue);
+    }
+
+    // Calculate start position for centered buttons
+    int startX = WINDOW_WIDTH / 2 - (buttonValues.size() * buttonWidth) / 2;
+    int y = 250;
+
+    // Create the actual buttons
+    for (int i = 0; i < buttonValues.size(); i++) {
+        int value = buttonValues[i];
+        Button btn = createButton(startX + i * buttonWidth, y, std::to_string(value));
+        btn.rect.w = buttonWidth;
+        btn.rect.h = buttonHeight;
+        input.buttons.push_back(btn);
+    }
+
+    return input;
+}
+
+
 
 int main() {
     // Initialize SDL
@@ -103,11 +230,20 @@ int main() {
     GuiState guiState = GuiState::MainMenu;
     Size selectedSize = Size::Small;
     Difficulty selectedDifficulty = Difficulty::Easy;
-    int customRows = 0, customCols = 0, customMines = 0;
+    CustomInputType currentCustomInput = CustomInputType::Rows;
+    int customRows = 5, customCols = 5, customMines = 3;
+    bool customSizeSelected = false;
+    bool customDifficultySelected = false;
 
     // Create main menu buttons
     Button newGameButton = createButton(WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2, 200, "New Game");
     Button quitButton = createButton(WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2, 260, "Quit");
+
+    NumericInput rowInput = createNumericInput("Select number of rows:", 1, 13, 5, CustomInputType::Rows);
+    NumericInput colInput = createNumericInput("Select number of columns:", 1, 13, 5, CustomInputType::Columns);
+    NumericInput mineInput = createNumericInput("Select number of mines:", 1, 13, 3, CustomInputType::Mines);
+
+    Button continueButton = createButton(WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2, 350, "Continue");
 
     // Create size selection buttons
     std::vector<Button> sizeButtons = {
@@ -127,6 +263,7 @@ int main() {
 
     // Game control buttons
     Button backToMenuButton = createButton(20, 20, "Main Menu");
+    Button playAgainButton = createButton(WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2, WINDOW_HEIGHT - 150, "Play Again");
 
     // Main loop
     bool quit = false;
@@ -157,8 +294,33 @@ int main() {
                         button.isHovered = isPointInRect(mouseX, mouseY, button.rect);
                     }
                 }
+                else if (guiState == GuiState::CustomInput) {
+                    // Update hover state for the numeric input buttons
+                    NumericInput* currentInput = nullptr;
+                    if (currentCustomInput == CustomInputType::Rows) {
+                        currentInput = &rowInput;
+                    }
+                    else if (currentCustomInput == CustomInputType::Columns) {
+                        currentInput = &colInput;
+                    }
+                    else if (currentCustomInput == CustomInputType::Mines) {
+                        currentInput = &mineInput;
+                    }
+
+                    if (currentInput) {
+                        for (auto& button : currentInput->buttons) {
+                            button.isHovered = isPointInRect(mouseX, mouseY, button.rect);
+                        }
+                    }
+
+                    continueButton.isHovered = isPointInRect(mouseX, mouseY, continueButton.rect);
+                }
                 else if (guiState == GuiState::InGame) {
                     backToMenuButton.isHovered = isPointInRect(mouseX, mouseY, backToMenuButton.rect);
+                }
+                else if (guiState == GuiState::GameEnd) {
+                    backToMenuButton.isHovered = isPointInRect(mouseX, mouseY, backToMenuButton.rect);
+                    playAgainButton.isHovered = isPointInRect(mouseX, mouseY, playAgainButton.rect);
                 }
             }
             else if (e.type == SDL_MOUSEBUTTONDOWN) {
@@ -181,10 +343,13 @@ int main() {
                                 selectedSize = static_cast<Size>(i + 1);
 
                                 if (selectedSize == Size::Custom) {
-                                    handleCustomSizeInput(customRows, customCols);
+                                    // Switch to custom input mode for rows first
+                                    currentCustomInput = CustomInputType::Rows;
+                                    guiState = GuiState::CustomInput;
                                 }
-
-                                guiState = GuiState::DifficultySelection;
+                                else {
+                                    guiState = GuiState::DifficultySelection;
+                                }
                                 break;
                             }
                         }
@@ -195,14 +360,63 @@ int main() {
                                 selectedDifficulty = static_cast<Difficulty>(i + 1);
 
                                 if (selectedDifficulty == Difficulty::Custom) {
-                                    customMines = handleCustomMinesInput(selectedSize, customRows, customCols);
-                                }
+                                    // Set maximum mines based on board size
+                                    int maxMines = 0;
+                                    if (selectedSize == Size::Custom) {
+                                        maxMines = customRows * customCols - 1;  // Maximum possible mines
+                                        int recommendedMax = (customRows * customCols) / 2;  // Half of the board size
+                                        maxMines = std::min(maxMines, recommendedMax);  // Use the smaller value
+                                    }
+                                    else if (selectedSize == Size::Small) {
+                                        maxMines = 5 * 5 - 1;
+                                        maxMines = std::min(maxMines, (5 * 5) / 2);
+                                    }
+                                    else if (selectedSize == Size::Medium) {
+                                        maxMines = 8 * 8 - 1;
+                                        maxMines = std::min(maxMines, (8 * 8) / 2);
+                                    }
+                                    else if (selectedSize == Size::Big) {
+                                        maxMines = 10 * 10 - 1;
+                                        maxMines = std::min(maxMines, (10 * 10) / 2);
+                                    }
 
-                                // Apply settings and start game
-                                game.applyGameSettings(selectedSize, customRows, customCols, selectedDifficulty, customMines);
-                                game.play();
-                                guiState = GuiState::InGame;
+                                    // Create mine input with correct max value - no more arbitrary limit of 15
+                                    mineInput = createNumericInput("Select number of mines:", 1, maxMines,
+                                        std::min(3, maxMines), CustomInputType::Mines);
+                                    currentCustomInput = CustomInputType::Mines;
+                                    guiState = GuiState::CustomInput;
+                                }
+                                else {
+                                    // Apply settings and start game
+                                    game.applyGameSettings(selectedSize, customRows, customCols, selectedDifficulty, customMines);
+                                    game.play();
+                                    guiState = GuiState::InGame;
+                                }
                                 break;
+                            }
+                        }
+                    }
+                    else if (guiState == GuiState::CustomInput) {
+                        // Handle custom input based on what we're currently inputting
+                        NumericInput* currentInput = nullptr;
+                        if (currentCustomInput == CustomInputType::Rows) {
+                            currentInput = &rowInput;
+                        }
+                        else if (currentCustomInput == CustomInputType::Columns) {
+                            currentInput = &colInput;
+                        }
+                        else if (currentCustomInput == CustomInputType::Mines) {
+                            currentInput = &mineInput;
+                        }
+
+                        if (currentInput) {
+                            if (handleNumericInputClick(mouseX, mouseY, *currentInput, continueButton, currentCustomInput,
+                                customRows, customCols, customMines, guiState, selectedSize)) {
+                                // If we moved to InGame state, apply settings and start game
+                                if (guiState == GuiState::InGame) {
+                                    game.applyGameSettings(selectedSize, customRows, customCols, selectedDifficulty, customMines);
+                                    game.play();
+                                }
                             }
                         }
                     }
@@ -213,11 +427,32 @@ int main() {
                         else {
                             // Handle board click if game is in playing state
                             if (game.getState() == GameState::Playing) {
-                                handleMouseClick(mouseX, mouseY, game);
+                                handleMouseLeftClick(mouseX, mouseY, game);
                             }
                         }
                     }
+                    else if (guiState == GuiState::GameEnd) {
+                        if (isPointInRect(mouseX, mouseY, backToMenuButton.rect)) {
+                            guiState = GuiState::MainMenu;
+                        }
+                        else if (isPointInRect(mouseX, mouseY, playAgainButton.rect)) {
+                            // Skip the main menu and go straight to size selection
+                            guiState = GuiState::SizeSelection;
+                        }
+                    }
+
                 }
+                else if (e.button.button == SDL_BUTTON_RIGHT) {
+                    std::cout << "Right click detected at: " << e.button.x << ", " << e.button.y << std::endl;
+                    int mouseX = e.button.x;
+                    int mouseY = e.button.y;
+
+                    if (guiState == GuiState::InGame && game.getState() == GameState::Playing) {
+                        handleMouseRightClick(mouseX, mouseY, game);
+                    }
+
+                }
+
             }
         }
 
@@ -263,6 +498,31 @@ int main() {
                 renderButton(renderer, font, button);
             }
         }
+        else if (guiState == GuiState::CustomInput) {
+            // Set the background
+            SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255); // Dark gray background
+            SDL_RenderClear(renderer);
+
+            // Render title
+            SDL_Color titleColor = { 255, 255, 255, 255 };
+            std::string titleText;
+
+            if (currentCustomInput == CustomInputType::Rows) {
+                renderNumericInput(renderer, font, rowInput, continueButton);
+                titleText = "Custom Board Size - Step 1/2";
+            }
+            else if (currentCustomInput == CustomInputType::Columns) {
+                renderNumericInput(renderer, font, colInput, continueButton);
+                titleText = "Custom Board Size - Step 2/2";
+            }
+            else if (currentCustomInput == CustomInputType::Mines) {
+                renderNumericInput(renderer, font, mineInput, continueButton);
+                titleText = "Custom Difficulty";
+            }
+
+            renderText(renderer, font, titleText, WINDOW_WIDTH / 2 - 120, 100, titleColor);
+        }
+
         else if (guiState == GuiState::InGame) {
             // Render game board
             renderBoard(renderer, font, game);
@@ -272,6 +532,18 @@ int main() {
 
             // Render back to menu button
             renderButton(renderer, font, backToMenuButton);
+
+            // Check if game has ended and transition to GameEnd state
+            if (game.getState() == GameState::Ended) {
+                guiState = GuiState::GameEnd;
+            }
+        }
+        else if (guiState == GuiState::GameEnd) {
+            // First render the game board in the background
+            renderBoard(renderer, font, game);
+
+            // Then render the game end overlay
+            renderGameEnd(renderer, font, game, backToMenuButton, playAgainButton);
         }
 
         // Update screen
@@ -290,10 +562,10 @@ int main() {
 
 // Handle custom size input from the console (can be replaced with GUI input boxes in a more advanced version)
 void handleCustomSizeInput(int& customRows, int& customCols) {
-    std::cout << "Enter number of rows (min 5): ";
-    customRows = getValidNumber<int>(5);
-    std::cout << "Enter number of columns (min 5): ";
-    customCols = getValidNumber<int>(5);
+    std::cout << "Enter number of rows (1-13): ";
+    customRows = getValidNumber<int>(1,13);
+    std::cout << "Enter number of columns (1-13): ";
+    customCols = getValidNumber<int>(1,13);
 }
 
 // Handle custom mines input from the console
@@ -446,8 +718,29 @@ void renderBoard(SDL_Renderer* renderer, TTF_Font* font, MinesweeperGame& game) 
             }
             else {
                 // Unrevealed cell
-                SDL_SetRenderDrawColor(renderer, 120, 120, 120, 255); // Dark gray
-                SDL_RenderFillRect(renderer, &cellRect);
+                if (board->isCellFlagged(row, col)) {
+                    // Flagged cell
+                    SDL_SetRenderDrawColor(renderer, 200, 50, 50, 255); // Red
+                    SDL_RenderFillRect(renderer, &cellRect);
+
+                    // Optionally draw a flag symbol (like a small triangle)
+                    Sint16 xPoints[3] = {
+                        static_cast<Sint16>(BOARD_OFFSET_X + col * CELL_SIZE + CELL_SIZE / 4),
+                        static_cast<Sint16>(BOARD_OFFSET_X + col * CELL_SIZE + CELL_SIZE * 3 / 4),
+                        static_cast<Sint16>(BOARD_OFFSET_X + col * CELL_SIZE + CELL_SIZE / 4)
+                    };
+                    Sint16 yPoints[3] = {
+                        static_cast<Sint16>(BOARD_OFFSET_Y + row * CELL_SIZE + CELL_SIZE / 4),
+                        static_cast<Sint16>(BOARD_OFFSET_Y + row * CELL_SIZE + CELL_SIZE / 2),
+                        static_cast<Sint16>(BOARD_OFFSET_Y + row * CELL_SIZE + CELL_SIZE * 3 / 4)
+                    };
+                    filledPolygonRGBA(renderer, xPoints, yPoints, 3, 255, 255, 255, 255);
+                }
+                else {
+                    // Normal unrevealed cell
+                    SDL_SetRenderDrawColor(renderer, 120, 120, 120, 255); // Dark gray
+                    SDL_RenderFillRect(renderer, &cellRect);
+                }
             }
         }
     }
@@ -487,8 +780,82 @@ void renderUI(SDL_Renderer* renderer, TTF_Font* font, MinesweeperGame& game, Gui
     renderText(renderer, font, totalScoreText, 20, WINDOW_HEIGHT - 40, white);
 }
 
+// Render the game end screen with overlay
+void renderGameEnd(SDL_Renderer* renderer, TTF_Font* font, MinesweeperGame& game, Button& backToMenuButton, Button& playAgainButton) {
+    // Draw semi-transparent overlay
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 180); // Semi-transparent black
+    SDL_Rect overlayRect = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+    SDL_RenderFillRect(renderer, &overlayRect);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+
+    // Draw game end panel
+    SDL_SetRenderDrawColor(renderer, 50, 50, 70, 255); // Dark blue-gray
+    SDL_Rect panelRect = { WINDOW_WIDTH / 2 - 200, WINDOW_HEIGHT / 2 - 200, 400, 350 };
+    SDL_RenderFillRect(renderer, &panelRect);
+
+    // Draw panel border
+    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255); // Light gray
+    SDL_RenderDrawRect(renderer, &panelRect);
+
+    // Determine winner and set colors
+    SDL_Color titleColor = { 255, 255, 255, 255 }; // White
+    SDL_Color player1Color = { 100, 200, 255, 255 }; // Light blue
+    SDL_Color player2Color = { 255, 200, 100, 255 }; // Light orange
+    SDL_Color winnerColor;
+
+    std::string winnerText;
+    if (game.getPlayer1Score() > game.getPlayer2Score()) {
+        winnerText = "Player 1 Wins!";
+        winnerColor = player1Color;
+    }
+    else if (game.getPlayer2Score() > game.getPlayer1Score()) {
+        winnerText = "Player 2 Wins!";
+        winnerColor = player2Color;
+    }
+    else {
+        winnerText = "It's a Tie!";
+        winnerColor = titleColor;
+    }
+
+    // Render game end title
+    renderText(renderer, font, "Game Over!", panelRect.x + 150, panelRect.y + 30, titleColor);
+
+    // Render winner
+    renderText(renderer, font, winnerText, panelRect.x + 150, panelRect.y + 70, winnerColor);
+
+    // Render scores
+    int textY = panelRect.y + 120;
+    renderText(renderer, font, "Round Scores:", panelRect.x + 150, textY, titleColor);
+
+    textY += 40;
+    std::string p1ScoreText = "Player 1: " + std::to_string(game.getPlayer1Score()) + " points";
+    std::string p2ScoreText = "Player 2: " + std::to_string(game.getPlayer2Score()) + " points";
+    renderText(renderer, font, p1ScoreText, panelRect.x + 150, textY, player1Color);
+
+    textY += 30;
+    renderText(renderer, font, p2ScoreText, panelRect.x + 150, textY, player2Color);
+
+    // Render total scores
+    textY += 50;
+    renderText(renderer, font, "Total Scores:", panelRect.x + 150, textY, titleColor);
+
+    textY += 40;
+    std::string p1TotalText = "Player 1: " + std::to_string(game.getPlayer1Total()) + " points";
+    std::string p2TotalText = "Player 2: " + std::to_string(game.getPlayer2Total()) + " points";
+    renderText(renderer, font, p1TotalText, panelRect.x + 150, textY, player1Color);
+
+    textY += 30;
+    renderText(renderer, font, p2TotalText, panelRect.x + 150, textY, player2Color);
+
+    // Render buttons
+    renderButton(renderer, font, backToMenuButton);
+    renderButton(renderer, font, playAgainButton);
+}
+
 // Handle mouse click on the board
-void handleMouseClick(int x, int y, MinesweeperGame& game) {
+void handleMouseLeftClick(int x, int y, MinesweeperGame& game) {
+    std::cout << "handleMouseLeftClick called for position: " << x << ", " << y << std::endl;
     GameBoard* board = game.getBoard();
     if (!board) return;
 
@@ -558,3 +925,53 @@ void handleMouseClick(int x, int y, MinesweeperGame& game) {
         }
     }
 }
+
+
+void handleMouseRightClick(int x, int y, MinesweeperGame& game) {
+    std::cout << "handleMouseRightClick called for position: " << x << ", " << y << std::endl;
+    GameBoard* board = game.getBoard();
+    if (!board) return;
+
+    // Check if click is within board boundaries
+    if (x < BOARD_OFFSET_X || y < BOARD_OFFSET_Y) return;
+
+    int col = (x - BOARD_OFFSET_X) / CELL_SIZE;
+    int row = (y - BOARD_OFFSET_Y) / CELL_SIZE;
+
+    if (row >= 0 && row < board->getRows() && col >= 0 && col < board->getCols()) {
+        // Toggle flag on unrevealed cell
+        board->toggleFlag(row, col);
+    }
+}
+
+
+void renderNumericInput(SDL_Renderer* renderer, TTF_Font* font, NumericInput& input, Button& continueButton) {
+    // Render label
+    SDL_Color white = { 255, 255, 255, 255 };
+    renderText(renderer, font, input.label, WINDOW_WIDTH / 2 - 100, 180, white);
+
+    // Render current value
+    std::string valueText = "Current value: " + std::to_string(input.currentValue);
+    renderText(renderer, font, valueText, WINDOW_WIDTH / 2 - 100, 210, white);
+
+    // Render buttons
+    for (auto& button : input.buttons) {
+        // Highlight the button if it's the current value
+        if (button.text == std::to_string(input.currentValue)) {
+            SDL_Rect highlightRect = button.rect;
+            highlightRect.x -= 2;
+            highlightRect.y -= 2;
+            highlightRect.w += 4;
+            highlightRect.h += 4;
+            SDL_SetRenderDrawColor(renderer, 255, 215, 0, 255); // Gold color
+            SDL_RenderDrawRect(renderer, &highlightRect);
+        }
+        renderButton(renderer, font, button);
+    }
+
+    // Render continue button
+    renderButton(renderer, font, continueButton);
+}
+
+
+

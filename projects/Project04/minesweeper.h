@@ -65,6 +65,7 @@ class GameBoard {
 private:
     std::vector<std::vector<int>> board;
     std::vector<std::vector<bool>> visibility;
+    std::vector<std::vector<bool>> flags;
     int rows;
     int cols;
     int mines;
@@ -74,6 +75,7 @@ public:
     bool revealCell(int row, int col);
     void revealAllMines();
     ResultState checkWin() const;
+    void toggleFlag(int row, int col);
     // Getters
     int getRows() const;
     int getCols() const;
@@ -81,6 +83,8 @@ public:
     int getCellValue(int row, int col) const;
     bool isCellVisible(int row, int col) const;
     bool isCellMine(int row, int col) const;
+    bool isCellFlagged(int row, int col) const;
+
 };
 // UI class
 class GameUI {

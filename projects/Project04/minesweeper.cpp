@@ -155,6 +155,7 @@ void GameBoard::initialize() {
     // Initialize board
     board = std::vector<std::vector<int>>(rows, std::vector<int>(cols, static_cast<int>(CellState::Blank)));
     visibility = std::vector<std::vector<bool>>(rows, std::vector<bool>(cols, false));
+    flags = std::vector<std::vector<bool>>(rows, std::vector<bool>(cols, false));
 
     // Place mines
     int minesPlaced = 0;
@@ -188,6 +189,14 @@ void GameBoard::initialize() {
     }
 }
 
+void GameBoard::toggleFlag(int row, int col) {
+    if (row < 0 || row >= rows || col < 0 || col >= cols || visibility[row][col]) {
+        return; // Can't flag cells that are out of bounds or already visible
+    }
+    flags[row][col] = !flags[row][col];
+}
+
+
 bool GameBoard::revealCell(int row, int col) {
     if (row < 0 || row >= rows || col < 0 || col >= cols || visibility[row][col]) {
         return false;
@@ -204,6 +213,13 @@ bool GameBoard::revealCell(int row, int col) {
     }
 
     return true;
+}
+
+bool GameBoard::isCellFlagged(int row, int col) const {
+    if (row < 0 || row >= rows || col < 0 || col >= cols || visibility[row][col]) {
+        return false; // Can't flag cells that are out of bounds or already visible
+    }
+    return flags[row][col];
 }
 
 void GameBoard::revealAllMines() {
