@@ -1,21 +1,52 @@
-#include "rectangle.h"
-#include <memory>
 #include <iostream>
- 
-void createRectangle(std::unique_ptr<Rectangle>& ptr) {
-    ptr = std::make_unique<Rectangle>(7, 4);
-}
- 
+#include <memory>
+
+// Base Writer interface
+class Writer {
+public:
+    virtual void write() const = 0;
+    virtual ~Writer() = default;
+};
+
+// PlainWriter outputs raw text
+class PlainWriter : public Writer {
+public:
+    void write() const override {
+        std::cout << "[TEXT]";
+    }
+};
+
+// TimestampDecorator adds [Start] and [End]
+class TimestampDecorator : public Writer {
+    std::shared_ptr<Writer> base;
+public:
+    TimestampDecorator(std::shared_ptr<Writer> b) : base(std::move(b)) {}
+
+    void write() const override {
+        std::cout << "[Start]";
+        base->write();
+        std::cout << "[End]";
+    }
+};
+
+// FancyDecorator adds * before and after output
+class FancyDecorator : public Writer {
+    std::shared_ptr<Writer> base;
+public:
+    FancyDecorator(std::shared_ptr<Writer> b) : base(std::move(b)) {}
+
+    void write() const override {
+        std::cout << "*";
+        base->write();
+        std::cout << "*";
+    }
+};
+
 int main() {
-    std::unique_ptr<Rectangle> rect1 = std::make_unique<Rectangle>(10, 5);
-    rect1->printArea();
- 
-    std::unique_ptr<Rectangle> rect3 = std::move(rect1);
-    if (!rect1) std::cout << "rect1 is null after move\n";
- 
-    std::unique_ptr<Rectangle> rect2;
-    createRectangle(rect2);
-    rect2->printArea();
- 
-    return 0;
+    std::shared_ptr<Writer> w = std::make_shared<FancyDecorator>(
+        std::make_shared<TimestampDecorator>(
+            std::make_shared<PlainWriter>()));
+
+    w->write();  // Expected output: *[Start][TEXT][End]*
+    std::cout << "\n";
 }
