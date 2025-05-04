@@ -11,8 +11,8 @@
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 650;
 const int CELL_SIZE = 40;
-const int BOARD_OFFSET_X = 220;  // Increased x offset
-const int BOARD_OFFSET_Y = 100;  // Increased y offset
+const int BOARD_OFFSET_X = 220; 
+const int BOARD_OFFSET_Y = 100; 
 const int BUTTON_WIDTH = 150;
 const int BUTTON_HEIGHT = 40;
 
@@ -23,7 +23,7 @@ enum class GuiState {
     DifficultySelection,
     CustomInput,
     InGame,
-    GameEnd  // New state for game end screen
+    GameEnd  
 };
 
 enum class CustomInputType {
@@ -69,6 +69,7 @@ void handleCustomSizeInput(int& customRows, int& customCols);
 int handleCustomMinesInput(Size sizeChoice, int customRows, int customCols);
 void renderGameEnd(SDL_Renderer* renderer, TTF_Font* font, MinesweeperGame& game, Button& backToMenuButton, Button& playAgainButton);
 void renderNumericInput(SDL_Renderer* renderer, TTF_Font* font, NumericInput& input, Button& continueButton);
+void renderGameRules(SDL_Renderer* renderer, TTF_Font* font); // New function for game rules
 
 bool handleNumericInputClick(int mouseX, int mouseY, NumericInput& input, Button& continueButton,
     CustomInputType& currentInput, int& customRows, int& customCols, int& customMines,
@@ -225,6 +226,9 @@ int main() {
     // Initialize game
     MinesweeperGame game;
     game.initialize();
+
+    // keep track to alternate
+    bool player1Starts = true;
 
     // Set up GUI state
     GuiState guiState = GuiState::MainMenu;
@@ -390,6 +394,10 @@ int main() {
                                     // Apply settings and start game
                                     game.applyGameSettings(selectedSize, customRows, customCols, selectedDifficulty, customMines);
                                     game.play();
+
+                                    // Set the starting player based on the alternating flag
+                                    game.setCurrentPlayer(player1Starts ? Player::One : Player::Two);
+
                                     guiState = GuiState::InGame;
                                 }
                                 break;
@@ -416,6 +424,9 @@ int main() {
                                 if (guiState == GuiState::InGame) {
                                     game.applyGameSettings(selectedSize, customRows, customCols, selectedDifficulty, customMines);
                                     game.play();
+
+                                    // Set the starting player based on the alternating flag
+                                    game.setCurrentPlayer(player1Starts ? Player::One : Player::Two);
                                 }
                             }
                         }
@@ -427,17 +438,22 @@ int main() {
                         else {
                             // Handle board click if game is in playing state
                             if (game.getState() == GameState::Playing) {
-                                handleMouseLeftClick(mouseX, mouseY, game);
+                                handleMouseLeftClick(mouseX, mouseY, game);  
                             }
                         }
                     }
                     else if (guiState == GuiState::GameEnd) {
                         if (isPointInRect(mouseX, mouseY, backToMenuButton.rect)) {
                             guiState = GuiState::MainMenu;
+
+                            //change player starting:
+                            player1Starts = !player1Starts;
                         }
                         else if (isPointInRect(mouseX, mouseY, playAgainButton.rect)) {
                             // Skip the main menu and go straight to size selection
                             guiState = GuiState::SizeSelection;
+
+                            player1Starts = !player1Starts;
                         }
                     }
 
@@ -465,6 +481,8 @@ int main() {
             // Render title
             SDL_Color titleColor = { 255, 255, 255, 255 };
             renderText(renderer, font, "Minesweeper Game", WINDOW_WIDTH / 2 - 80, 100, titleColor);
+            
+            renderGameRules(renderer, font);
 
             // Render main menu buttons
             renderButton(renderer, font, newGameButton);
@@ -476,6 +494,15 @@ int main() {
                 std::string totalScoreText = "Total Score - P1: " + std::to_string(game.getPlayer1Total()) +
                     " | P2: " + std::to_string(game.getPlayer2Total());
                 renderText(renderer, font, totalScoreText, WINDOW_WIDTH / 2 - 120, 350, scoreColor);
+
+                // Show who starts next
+                SDL_Color nextPlayerColor = player1Starts ?
+                    SDL_Color{ 100, 200, 255, 255 } : // Light blue for player 1
+                    SDL_Color{ 255, 200, 100, 255 }; // Light orange for player 2
+
+                std::string nextPlayerText = "Next starting player: Player " +
+                    std::to_string(player1Starts ? 1 : 2);
+                renderText(renderer, font, nextPlayerText, WINDOW_WIDTH / 2 - 100, 380, nextPlayerColor);
             }
         }
         else if (guiState == GuiState::SizeSelection) {
@@ -974,4 +1001,22 @@ void renderNumericInput(SDL_Renderer* renderer, TTF_Font* font, NumericInput& in
 }
 
 
+void renderGameRules(SDL_Renderer* renderer, TTF_Font* font) {
+    // Title for rules section
+    SDL_Color titleColor = { 255, 215, 0, 255 }; // Gold color for title
+    renderText(renderer, font, "How to Play:", 50, 120, titleColor);
 
+    // Game rules with different colors
+    SDL_Color ruleColor = { 175, 238, 238, 255 }; // Light cyan for rules
+    SDL_Color scoreColor = { 144, 238, 144, 255 }; // Light green for scoring
+
+    // Rules - placed in a neat column with consistent spacing
+    renderText(renderer, font, "> Left click: Reveal cell", 50, 150, ruleColor);
+    renderText(renderer, font, "> Right click: Place/remove flags", 50, 175, ruleColor);
+
+    // Scoring rules section
+    renderText(renderer, font, "Scoring:", 50, 215, titleColor);
+    renderText(renderer, font, "> Surviving a turn: +1 point", 50, 245, scoreColor);
+    renderText(renderer, font, "> Hitting a mine: -2 points", 50, 270, scoreColor);
+    renderText(renderer, font, "> Winning the round: +3 points", 50, 295, scoreColor);
+}
