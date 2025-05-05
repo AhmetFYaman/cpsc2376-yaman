@@ -1,5 +1,5 @@
 # Minesweeper Duel System Design
-
+A two-player adaptation of the classic Minesweeper game featuring a graphical interface built with SDL2.
 ## 1. Program Specification
 
 Minesweeper Duel is a two-player adaptation of the classic Minesweeper game featuring a graphical interface (SDL2).
