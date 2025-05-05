@@ -138,6 +138,9 @@
   <ItemGroup>
     <Font Include="Ubuntu-B.ttf" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Read.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

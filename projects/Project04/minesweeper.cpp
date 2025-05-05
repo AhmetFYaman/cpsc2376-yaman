@@ -123,7 +123,7 @@ int MinesweeperGame::getPlayer2Total() const {
     return player2Total;
 }
 
-// New setter methods
+
 void MinesweeperGame::setState(GameState newState) {
     state = newState;
 }
@@ -191,7 +191,7 @@ void GameBoard::initialize() {
 
 void GameBoard::toggleFlag(int row, int col) {
     if (row < 0 || row >= rows || col < 0 || col >= cols || visibility[row][col]) {
-        return; // Can't flag cells that are out of bounds or already visible
+        return; 
     }
     flags[row][col] = !flags[row][col];
 }
@@ -217,7 +217,7 @@ bool GameBoard::revealCell(int row, int col) {
 
 bool GameBoard::isCellFlagged(int row, int col) const {
     if (row < 0 || row >= rows || col < 0 || col >= cols || visibility[row][col]) {
-        return false; // Can't flag cells that are out of bounds or already visible
+        return false; 
     }
     return flags[row][col];
 }

@@ -35,4 +35,7 @@
       <Filter>Source Files</Filter>
     </Font>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Read.md" />
+  </ItemGroup>
 </Project>

@@ -996,7 +996,7 @@ void renderNumericInput(SDL_Renderer* renderer, TTF_Font* font, NumericInput& in
         renderButton(renderer, font, button);
     }
 
-    // Render continue button
+    
     renderButton(renderer, font, continueButton);
 }
 
