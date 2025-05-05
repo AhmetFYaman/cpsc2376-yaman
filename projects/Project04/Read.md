@@ -2,13 +2,15 @@
 A two-player adaptation of the classic Minesweeper game featuring a graphical interface built with SDL2.
 ## 1. Program Specification
 
-Minesweeper Duel is a two-player adaptation of the classic Minesweeper game featuring a graphical interface (SDL2).
+Minesweeper Duel is a two-player adaptation of the classic Minesweeper game featuring a graphical interface (SDL2). 
 Players alternate turns to reveal or flag cells on a rectangular grid. Revealing a safe cell yields +1 point; 
 uncovering a mine incurs –2 points and grants +2 points to the opponent. 
 Clearing all non-mine cells ends the round with a +3 bonus to the round winner. 
-Cumulative scores persist across multiple rounds.games owned by the café, including their availability status. 
-It allows staff to check out games to customers, record due dates, monitor current loans, and process returns. 
-The program provides simple reporting features to view game availability and current borrower information to efficiently manage the café's lending service.
+Cumulative scores persist across multiple rounds.games owned by the café, 
+including their availability status. It allows staff to check out games to customers, 
+record due dates, monitor current loans, and process returns. 
+The program provides simple reporting features to view game availability and current 
+borrower information to efficiently manage the café's lending service.
 
 ### Main features:
 - Configurable grid size and mine count (preset difficulties or custom)Turn-based scoring and point-tracking for both players
